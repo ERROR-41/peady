@@ -27,6 +27,16 @@ class AddBalanceSerializer(ModelSerializer):
         model = AccountBalance
         fields = ["id", "amount", "balance"]
         read_only_fields = ["id", "balance"]
+        
+        def to_representation(self, instance):
+            representation = super().to_representation(instance)
+            # Only return id and amount for GET requests
+            if self.context['request'].method == 'GET':
+                return {
+                'id': representation['id'],
+                'amount': representation.get('amount', 0)
+            }
+            return representation
 
     def create(self, validated_data):
         amount = validated_data.pop("amount", Decimal("0.00"))

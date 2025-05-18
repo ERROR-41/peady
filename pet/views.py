@@ -97,7 +97,6 @@ class PetCategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ["category"] 
     pagination_class = PageNumberPagination
     search_fields = ["name"]
     
