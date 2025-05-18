@@ -113,7 +113,11 @@ WSGI_APPLICATION = "peady.wsgi.app"
 
 if config("DATABASE_URL", default=None):
     DATABASES = {
-        "default": dj_database_url.parse(config("DATABASE_URL"), conn_max_age=600, ssl_require=True)
+        "default": dj_database_url.parse(
+            os.getenv("DATABASE_URL"),  # set in your environment
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
 else:
     DATABASES = {
