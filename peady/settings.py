@@ -14,11 +14,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool)
+DEBUG = config("DEBUG", cast=bool)
 
 
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "peady-md-al-omars-projects.vercel.app",
+    ".vercel.app",
+]
 
 # Application definition
 
@@ -62,7 +66,7 @@ MIDDLEWARE = [
 ]
 
 # Media files (Uploaded images, etc.)
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
@@ -147,7 +151,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATIC_URL = "/static/"
 
