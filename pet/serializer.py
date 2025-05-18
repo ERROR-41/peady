@@ -16,7 +16,7 @@ class PetImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField()
     class Meta:
         model = PetImage
-        fields = [ "image"]
+        fields = [ "image", "pet_name"]
 
 
 class PetSeralizer(ModelSerializer):
