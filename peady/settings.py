@@ -116,7 +116,6 @@ if config("DATABASE_URL", default=None):
         "default": dj_database_url.parse(
             os.getenv("DATABASE_URL"),  # set in your environment
             conn_max_age=600,
-            ssl_require=True,
         )
     }
 else:
@@ -128,9 +127,6 @@ else:
             "PASSWORD": config("DB_PASSWORD", ""),
             "HOST": config("DB_HOST", "aws-0-ap-southeast-1.pooler.supabase.com"),
             "PORT": config("DB_PORT", default=5432, cast=int),
-            "OPTIONS": {
-                "sslmode": "require",
-            },
             "CONN_MAX_AGE": 600,
         }
     }
