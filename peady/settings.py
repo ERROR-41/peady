@@ -14,15 +14,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 
 ALLOWED_HOSTS = [
     ".vercel.app",
     "127.0.0.1",
+    "localhost",
 ]
 
-
+# Only force SSL in production, not in development
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 # Application definition
 
 INSTALLED_APPS = [
@@ -95,17 +99,25 @@ WSGI_APPLICATION = "peady.wsgi.app"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+import dj_database_url
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST"),
-        "PORT": config("DB_PORT", cast=int),
+        "NAME": config("DB_NAME", ""),
+        "USER": config("DB_USER", ""),
+        "PASSWORD": config("DB_PASSWORD", ""),
+        "HOST": config("DB_HOST", ""),
+        "PORT": config("DB_PORT", default=5432, cast=int),
     }
 }
+
+# Use DATABASE_URL environment variable if provided (for Vercel and other platforms)
+if os.environ.get("DATABASE_URL"):
+    DATABASES["default"] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 # cloudinary settings
 cloudinary.config(
