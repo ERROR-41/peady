@@ -111,25 +111,15 @@ WSGI_APPLICATION = "peady.wsgi.app"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-if config("DATABASE_URL", default=None):
-    DATABASES = {
-        "default": dj_database_url.parse(
-            os.getenv("DATABASE_URL"),  # set in your environment
-            conn_max_age=600,
-        )
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": config("DB_NAME", ""),
-            "USER": config("DB_USER", ""),
-            "PASSWORD": config("DB_PASSWORD", ""),
-            "HOST": config("DB_HOST", "aws-0-ap-southeast-1.pooler.supabase.com"),
-            "PORT": config("DB_PORT", default=5432, cast=int),
-            "CONN_MAX_AGE": 600,
-        }
-    }
+
+DATABASES = {
+    "default": dj_database_url.parse(
+            config("DATABASE_URL"),  # set in your environment
+        conn_max_age=600,
+    )
+}
+
+   
 
 
 # cloudinary settings
