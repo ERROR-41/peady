@@ -8,7 +8,6 @@ from pet.serializer import (
 from pet.models import Pet, PetImage, Review, Category
 from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
-from pet.paginations import DefaultPagination
 
 
 
@@ -27,7 +26,6 @@ class PetAdoptionViewSet(ModelViewSet):
     serializer_class = PetSeralizer
     queryset = Pet.objects.select_related("category").all()
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = DefaultPagination
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
@@ -52,7 +50,6 @@ class PetImageViewSet(ModelViewSet):
 
     serializer_class = PetImageSerializer
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = DefaultPagination
 
     def get_queryset(self):
         pets_pk = self.kwargs.get("pets_pk")
@@ -87,7 +84,6 @@ class PetCategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = DefaultPagination
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
