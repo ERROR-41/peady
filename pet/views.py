@@ -33,6 +33,10 @@ class PetAdoptionViewSet(ModelViewSet):
     
     pagination_class = DefaultPagination    
     
+    def get_queryset(self):
+        queryset = Pet.objects.select_related('category').prefetch_related('pet_image_set').all() 
+        return queryset
+    
     
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
