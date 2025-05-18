@@ -41,7 +41,7 @@ class PetSeralizer(ModelSerializer):
         queryset=Category.objects.all(), write_only=True
     )
     
-    pet_images = PetImageSerializer(source='petimage_set', many=True, read_only=True)
+    pet_images = PetImageSerializer(source="images", many=True, read_only=True)
 
     
 
