@@ -1,23 +1,13 @@
 # Django related files and folders
 
-# Python bytecode
-__pycache__/
-*.py[cod]
-*$py.class
-
 # Django migrations
 */migrations/*.pyc
 db.sqlite3
 .venv*
+.env*
+__pycache__/
 
 
-# Django settings/local files
-*.sqlite3
-db.sqlite3
-.env
-.env.*
-*.env
-*.log
 
 # Media and static files
 /media/
@@ -28,22 +18,8 @@ db.sqlite3
 # pipenv/virtualenv
 venv/
 env/
-ENV/
 .venv/
 .python-version
 
-# Coverage reports
-htmlcov/
-.coverage
-.tox/
-.nox/
-.cache/
-.pytest_cache/
 
-# MyPy
-.mypy_cache/
-.dmypy.json
-.pyre/
 
-# Django secret key file
-secret_key.txt
