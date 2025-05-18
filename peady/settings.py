@@ -18,11 +18,10 @@ DEBUG = config("DEBUG", cast=bool)
 
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "peady-md-al-omars-projects.vercel.app",
     ".vercel.app",
+    "127.0.0.1",
 ]
+
 
 # Application definition
 
