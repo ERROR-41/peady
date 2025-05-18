@@ -34,7 +34,7 @@ class PetAdoptionViewSet(ModelViewSet):
     pagination_class = DefaultPagination    
     
     def get_queryset(self):
-        queryset = Pet.objects.select_related('category').prefetch_related('pet_image_set').all() 
+        queryset = Pet.objects.select_related('category').all() 
         return queryset
     
     
