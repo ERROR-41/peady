@@ -1,22 +1,17 @@
- {
-    "builds":
-    [
-        {
-            "src":"peady/wsgi.py",
-            "use":"@vercel/python", 
-            "config":
+{
+  "builds": [
+    {
+      "src": "peady/wsgi.py",
+      "use": "@vercel/python",
+       "config":
             {
                 "maxLambdaSize":"100mb",
                 "runtime":"python3.11"
-            }                 
-
-        }
-    ],
-    "routes":
-    [
-        {
-            "src":"/(.*)",
-            "dest":"peady/wsgi.py"
-        }
-    ]
- }
+            } 
+    }
+  ],
+  "routes": [
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/(.*)", "dest": "peady/wsgi.py" }
+  ]
+}
