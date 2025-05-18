@@ -11,7 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "peady.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'peady.settings')
 
-application = get_wsgi_application()
-app = application  # Both names are needed for compatibility
+app = get_wsgi_application()

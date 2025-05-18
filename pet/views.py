@@ -8,11 +8,9 @@ from pet.serializer import (
 from pet.models import Pet, PetImage, Review, Category
 from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import PageNumberPagination
+from pet.paginations import DefaultPagination
 
 
-class DefaultPagination(PageNumberPagination):
-    page_size = 10
 
 
 class PetAdoptionViewSet(ModelViewSet):
