@@ -7,6 +7,9 @@ __pycache__/
 
 # Django migrations
 */migrations/*.pyc
+db.sqlite3
+.venv*
+
 
 # Django settings/local files
 *.sqlite3
