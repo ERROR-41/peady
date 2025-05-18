@@ -8,6 +8,15 @@ class CategorySerializer(ModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "description"]
+        read_only_fields = ["id"]
+
+
+class PetImageSerializer(serializers.ModelSerializer):
+    pet_name = serializers.CharField(source="pet.name", read_only=True)
+    image = serializers.ImageField()
+    class Meta:
+        model = PetImage
+        fields = [ "image"]
 
 
 class PetSeralizer(ModelSerializer):
@@ -23,6 +32,7 @@ class PetSeralizer(ModelSerializer):
             "price",
             "stock",
             "availability_status",
+            "pet_images",
         ]
         read_only_fields = ["availability_status"]
 
@@ -30,18 +40,17 @@ class PetSeralizer(ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), write_only=True
     )
+    
+    pet_images = PetImageSerializer(source='petimage_set', many=True, read_only=True)
+
+    
 
     def validate_availability_status(sllf, value):
         if value == 0:
             serializers.ValidationError("Stock Must be at_least 1")
 
 
-class PetImageSerializer(serializers.ModelSerializer):
-    pet_name = serializers.CharField(source="pet.name", read_only=True)
-    image = serializers.ImageField()
-    class Meta:
-        model = PetImage
-        fields = ["id", "image", "pet_name"]
+
 
 
 class SimpleUserSerializer(serializers.ModelSerializer):
