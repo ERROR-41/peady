@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     "pet",
     "order",
     "users",
-    "debug_toolbar",
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -52,7 +51,6 @@ INTERNAL_IPS = [
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -65,6 +63,7 @@ MIDDLEWARE = [
 
 # Media files (Uploaded images, etc.)
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
