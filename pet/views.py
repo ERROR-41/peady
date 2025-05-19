@@ -100,7 +100,7 @@ class PetCategoryViewSet(ModelViewSet):
     """
 
     serializer_class = CategorySerializer
-    queryset = Category.objects.prefetch_related('pet_set').all()
+    queryset = Category.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     pagination_class = PageNumberPagination
