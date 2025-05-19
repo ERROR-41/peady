@@ -42,8 +42,7 @@ class PetImage(models.Model):
 class Review(models.Model):
     pet = models.ForeignKey(Pet, on_delete=models.CASCADE, related_name="reviews")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    description = models.TextField()
+    comments = models.TextField()
     date = models.DateField(auto_now=True)
 
     class Meta:
