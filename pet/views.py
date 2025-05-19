@@ -34,7 +34,7 @@ class PetAdoptionViewSet(ModelViewSet):
     pagination_class = DefaultPagination    
     
     def get_queryset(self):
-        queryset = Pet.objects.select_related('category').all() 
+        queryset = Pet.objects.select_related('category').prefetch_related('images').all()
         return queryset
     
     
@@ -58,6 +58,12 @@ class PetImageViewSet(ModelViewSet):
     - update: Update an existing image. (Admin only)
     - destroy: Remove an image. (Admin only)
     """
+    
+    def get_queryset(self):
+        pets_pk = self.kwargs.get("pets_pk")
+        if not pets_pk:
+            return PetImage.objects.none()
+        return PetImage.objects.select_related('pet').filter(pet_id=pets_pk)
 
     serializer_class = PetImageSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -94,7 +100,7 @@ class PetCategoryViewSet(ModelViewSet):
     """
 
     serializer_class = CategorySerializer
-    queryset = Category.objects.all()
+    queryset = Category.objects.prefetch_related('pet_set').all()
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     pagination_class = PageNumberPagination
