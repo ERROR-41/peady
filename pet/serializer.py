@@ -12,11 +12,10 @@ class CategorySerializer(ModelSerializer):
 
 
 class PetImageSerializer(serializers.ModelSerializer):
-    pet_name = serializers.CharField(source="pet.name", read_only=True)
     image = serializers.ImageField()
     class Meta:
         model = PetImage
-        fields = [ "image", "pet_name"]
+        fields = [ "image"]
 
 
 class PetSeralizer(ModelSerializer):
