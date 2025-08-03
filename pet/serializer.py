@@ -29,7 +29,6 @@ class PetSeralizer(ModelSerializer):
             "age",
             "description",
             "price",
-            "stock",
             "availability_status",
             "pet_images",
         ]
@@ -44,9 +43,9 @@ class PetSeralizer(ModelSerializer):
 
     
 
-    def validate_availability_status(sllf, value):
+    def validate_availability_status(self, value):
         if value == 0:
-            serializers.ValidationError("Stock Must be at_least 1")
+            raise serializers.ValidationError("Availability status cannot False")
 
 
 

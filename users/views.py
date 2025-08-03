@@ -39,7 +39,9 @@ class AccountBalanceViewSet(ModelViewSet):
     
     serializer_class = AddBalanceSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ["get","post"]
+    http_method_names = ["get", "post"]
 
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
+
+    

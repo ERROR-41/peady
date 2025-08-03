@@ -36,6 +36,15 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
 
 class CartItemViewSet(ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        # Calculate total price of all pets in the cart
+        all_pet_price = sum(item.pet.price for item in queryset)
+        return Response({
+            'items': serializer.data,
+            'all_pet_price': all_pet_price
+        })
     """
     API endpoint that allows users to view, add, update, and delete items in a shopping cart.
     This viewset provides the following actions for cart items:
@@ -92,12 +101,12 @@ class OrderViewset(ModelViewSet):
     def cancel(self, request, pk=None):
         order = self.get_object()
         OrderService.cancel_order(order=order, user=request.user)
-        return Response({'status': 'Order canceled'})
+        return Response({'status': 'Canceled'})
     
     @action(detail=True, methods=['post'])
     def mark_as_delivered(self, request, pk=None):
         order = self.get_object()
-        if order.status != 'delivered':
+        if order.status != 'Delivered':
             return Response({'error': 'Order is not marked as delivered yet.'}, status=400)
 
         # Save order details to user's pet adoption history only if status is 'delivered'
@@ -135,6 +144,31 @@ class OrderViewset(ModelViewSet):
         elif self.action == 'update_status':
             return orderSz.UpdateOrderSerializer
         return orderSz.OrderSerializer
+
+    def perform_create(self, serializer):
+        order = serializer.save(user=self.request.user)
+        # Mark pets as unavailable after order creation
+        for item in order.items.all():
+            pet = item.pet
+            pet.available = False
+            pet.save()
+
+    def perform_update(self, serializer):
+        order = serializer.save()
+        # If status is set to 'canceled', mark pets as available again
+        if hasattr(order, 'status') and order.status == 'canceled':
+            for item in order.items.all():
+                pet = item.pet
+                pet.available = True
+                pet.save()
+
+    def perform_destroy(self, instance):
+        # When an order is deleted (including cancel), mark pets as available again
+        for item in instance.items.all():
+            pet = item.pet
+            pet.available = True
+            pet.save()
+        instance.delete()
 
     def get_serializer_context(self):
         if getattr(self, 'swagger_fake_view', False):

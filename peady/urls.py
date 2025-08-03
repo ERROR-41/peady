@@ -16,7 +16,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="API documentation for Pet Adoptions",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="omar_amt@istt.edu.bd"),
+        contact=openapi.Contact(email="mdomarsadek41@gmail.com"),
         license=openapi.License(name="BD License"),
     ),
     public=True,

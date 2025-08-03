@@ -29,7 +29,7 @@ class PetAdoptionViewSet(ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["category"] 
-    search_fields = ["name"]
+    search_fields = ["^name"]
     
     pagination_class = DefaultPagination    
     
@@ -45,8 +45,6 @@ class PetAdoptionViewSet(ModelViewSet):
             self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
         return super().get_permissions()
 
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["category"]
 
 
 class PetImageViewSet(ModelViewSet):
@@ -104,7 +102,7 @@ class PetCategoryViewSet(ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     pagination_class = PageNumberPagination
-    search_fields = ["name"]
+    search_fields = ["^name"]
     
     
 

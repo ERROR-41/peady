@@ -35,9 +35,7 @@ else:
     CSRF_COOKIE_SECURE = False
     SECURE_PROXY_SSL_HEADER = None
 
-# SECURE_SSL_REDIRECT = not DEBUG
-# SESSION_COOKIE_SECURE = not DEBUG
-# CSRF_COOKIE_SECURE = not DEBUG
+
 
 # Application definition
 
@@ -248,5 +246,3 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
-# custom user model
-# AUTH_USER_MODEL = "users.User"

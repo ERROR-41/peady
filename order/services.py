@@ -10,8 +10,8 @@ class OrderService:
             cart = Cart.objects.get(pk=cart_id)
             cart_items = cart.items.select_related('pet').all()
 
-            total_price = sum([item.pet.price *
-                               item.quantity for item in cart_items])
+            # Calculate total price without quantity (each pet has its own price)
+            total_price = sum([item.pet.price for item in cart_items])
 
             if not cart.user:
                 raise ValidationError({"detail": "Cart is not associated with a valid user"})
@@ -28,22 +28,26 @@ class OrderService:
             if user_balance < total_price:
                 raise ValidationError({"detail": "Insufficient balance to place the order"})
             
-            
             order = Order.objects.create(
                 user_id=user_id, total_price=total_price, status=Order.READY_TO_SHIP)
 
+            # Create order items without quantity
             order_items = [
                 OrderItem(
                     order=order,
                     pet=item.pet,
                     price=item.pet.price,
-                    quantity=item.quantity,
-                    total_price=item.pet.price * item.quantity
+                    total_price=item.pet.price  # Each pet's total price is just its price
                 )
                 for item in cart_items
             ]
 
             OrderItem.objects.bulk_create(order_items)
+
+            # Mark all pets in the order as unavailable
+            for item in cart_items:
+                item.pet.availability_status = False  # Ensure 'availability_status' exists on Pet model
+                item.pet.save()
 
             cart.delete()
 
@@ -56,6 +60,12 @@ class OrderService:
                 account_balance, _ = AccountBalance.objects.get_or_create(user=order.user)
                 account_balance.balance += order.total_price
                 account_balance.save()
+                
+                # Make pets available again when order is canceled
+                for item in order.items.all():
+                    item.pet.availability_status = True
+                    item.pet.save()
+                    
             order.status = Order.CANCELED
             order.save()
             return order
@@ -71,6 +81,11 @@ class OrderService:
             account_balance, _ = AccountBalance.objects.get_or_create(user=order.user)
             account_balance.balance += order.total_price
             account_balance.save()
+            
+            # Make pets available again when order is canceled
+            for item in order.items.all():
+                item.pet.availability_status = True
+                item.pet.save()
 
         order.status = Order.CANCELED
         order.save()
