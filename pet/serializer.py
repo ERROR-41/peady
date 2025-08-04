@@ -79,10 +79,25 @@ class ReviewSerializer(serializers.ModelSerializer):
         # Check if user already has a review for this pet
         existing_review = Review.objects.filter(pet_id=pet_id, user=user).first()
         if existing_review:
-            raise serializers.ValidationError(
-                {"detail": "You have already reviewed this pet"}
-            )
+            raise serializers.ValidationError({"detail": "You have already reviewed this pet"})
+
+        # Check if user has ordered (adopted) this pet
+        from order.models import OrderItem
+        has_ordered = OrderItem.objects.filter(pet_id=pet_id, order__user=user).exists()
+        if not has_ordered:
+            raise serializers.ValidationError({"detail": "You can only review pets you have adopted (ordered)."})
+
         return Review.objects.create(pet_id=pet_id, user=user, **validated_data)
+
+    def validate(self, attrs):
+        # Ensure only users who have adopted (ordered) the pet can post a review
+        pet_id = self.context.get("pet_id")
+        user = self.context["request"].user
+        from order.models import OrderItem
+        has_ordered = OrderItem.objects.filter(pet_id=pet_id, order__user=user).exists()
+        if not has_ordered:
+            raise serializers.ValidationError({"detail": "You can only review pets you have adopted (ordered)."})
+        return attrs
 
     def update(self, instance, validated_data):
         # Ensure user can only update their own reviews

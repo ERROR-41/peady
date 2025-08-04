@@ -7,6 +7,7 @@
         "maxLambdaSize": "100mb",
         "runtime": "python3.11"
       }
+      
     }
   ],
   "routes": [{ "src": "/(.*)", "dest": "peady/wsgi.py" }]
