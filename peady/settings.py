@@ -24,8 +24,8 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173/",
-    "http://localhost:5174/",
+    "http://localhost:5173",
+    "http://localhost:5174",
 ]
 
 
