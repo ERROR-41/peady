@@ -21,7 +21,9 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 
-ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
+
+ALLOWED_HOSTS = ["peady.vercel.app", "127.0.0.1", "localhost"]
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -112,7 +114,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "peady.wsgi.app"
+WSGI_APPLICATION = "peady.wsgi.application"
 
 
 # Database
