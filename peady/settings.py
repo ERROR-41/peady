@@ -23,6 +23,11 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173/",
+    "http://localhost:5174/",
+]
+
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -52,6 +57,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework",
     "django_filters",
+    "corsheaders",
     "djoser",
     "api",
     "pet",
@@ -69,7 +75,8 @@ INTERNAL_IPS = [
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",              
+    "corsheaders.middleware.CorsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
