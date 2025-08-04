@@ -44,8 +44,8 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         pet = Pet.objects.get(pk=value)
         if  pet.availability_status == False:
             raise serializers.ValidationError(
-                f"Pet '{pet.name}' is not available for adoption")
-        
+                f"Pet '{pet.name}' is already adopted")
+
         return value
 
 
