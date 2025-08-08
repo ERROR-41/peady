@@ -34,7 +34,7 @@ class AddBalanceSerializer(ModelSerializer):
             if self.context['request'].method == 'GET':
                 return {
                 'id': representation['id'],
-                'amount': representation.get('amount', 0)
+                'amount': representation.get('balance', 0)
             }
             return representation
 

@@ -1,7 +1,7 @@
 
+from requests import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.response import Response
-from order.views import IsAuthenticated, action
+from rest_framework.permissions import IsAuthenticated
 from users.models import User
 from users.serializers import AddBalanceSerializer, UserProfileSerializer
 from rest_framework import permissions
@@ -43,5 +43,13 @@ class AccountBalanceViewSet(ModelViewSet):
 
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.request.user
+        data = {
+            "full_name": user.get_full_name(),
+            "current_balance": user.balance
+        }
+        return Response(data)
 
     

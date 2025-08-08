@@ -1,6 +1,5 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from order.views import CartItemViewSet, CartViewSet, OrderViewset
+from order.views import CartItemViewSet, CartViewSet,OrderViewSet
 from pet.views import (
     PetAdoptionViewSet,
     PetCategoryViewSet,
@@ -15,7 +14,7 @@ router = routers.DefaultRouter()
 router.register("pets", PetAdoptionViewSet, basename="pets")
 router.register("categories", PetCategoryViewSet, basename="category")
 router.register("carts", CartViewSet, basename="carts")
-router.register("orders", OrderViewset, basename="orders")
+router.register("orders", OrderViewSet, basename="orders")
 # Register the profile viewset (replace `ProfileViewSet` with the actual viewset for profiles)
 router.register("profile", UserProfileViewSet, basename="profile")
 router.register("add_money", AccountBalanceViewSet, basename="add_money")

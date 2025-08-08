@@ -10,9 +10,18 @@ class EmptySerializer(serializers.Serializer):
 
 
 class SimplePetSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Pet
-        fields = ['id', 'name', 'price']
+        fields = ['id', 'name', 'price', 'image']
+
+    def get_image(self, obj):
+        # Return a list of all image URLs for this pet
+        image_objs = getattr(obj, 'images', None)
+        if image_objs and hasattr(image_objs, 'all'):
+            return [img.image.url for img in image_objs.all() if hasattr(img, 'image') and img.image]
+        return []
 
 
 class AddCartItemSerializer(serializers.ModelSerializer):
@@ -57,12 +66,10 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     pet = SimplePetSerializer()
-    total_price = serializers.SerializerMethodField(
-        method_name='get_total_price')
 
     class Meta:
         model = CartItem
-        fields = ['id', 'pet', 'total_price']
+        fields = [ 'pet']
 
     def get_total_price(self, cart_item: CartItem):
         return cart_item.pet.price
@@ -82,10 +89,16 @@ class CartSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 
+class CartCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = ['id', 'user']
+        read_only_fields = ['user']
+
     def create(self, validated_data):
         user = self.context['request'].user
         if Cart.objects.filter(user=user).exists():
-            existing_cart = Cart.objects.get(user=user)
+            existing_cart = Cart.objects.filter(user=user).first()
             raise serializers.ValidationError({
                 "detail": "A cart already exists for this user.",
                 "existing_cart_id": str(existing_cart.id)
@@ -123,17 +136,19 @@ class CreateOrderSerializer(serializers.Serializer):
         return cart_id
 
     def create(self, validated_data):
-        user_id = self.context['user_id']
+        user = self.context['user']
         cart_id = validated_data['cart_id']
-
         try:
-            order = OrderService.create_order(user_id=user_id, cart_id=cart_id)
+            order = OrderService.create_order(user=user, cart_id=cart_id)
             return order
         except ValueError as e:
             raise serializers.ValidationError(str(e))
 
     def to_representation(self, instance):
-        return OrderSerializer(instance).data
+        from django.db.models import Model
+        if isinstance(instance, Model):
+            return OrderSerializer(instance).data
+        return super().to_representation(instance)
     
     
 
@@ -142,7 +157,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'pet', 'price', 'total_price']
+        fields = ['id', 'pet']
 
 
 class UpdateOrderSerializer(serializers.ModelSerializer):
@@ -154,11 +169,10 @@ class UpdateOrderSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
 
     items = OrderItemSerializer(many=True)
-    all_pet_price = serializers.SerializerMethodField()
 
     def get_all_pet_price(self, obj):
         return sum(item.pet.price for item in obj.items.all())
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'status', 'total_price', 'created_at', 'items', 'all_pet_price']
+        fields = ['id', 'user', 'status', 'total_price', 'created_at', 'items']

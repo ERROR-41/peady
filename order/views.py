@@ -23,8 +23,17 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
         - When generating API documentation (e.g., with Swagger), returns an empty queryset to avoid errors.
     """
     
-    serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return orderSz.CartCreateSerializer
+        return orderSz.CartSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -80,7 +89,7 @@ class CartItemViewSet(ModelViewSet):
         return CartItem.objects.select_related('pet').filter(cart_id=self.kwargs.get('cart_pk'))
 
 
-class OrderViewset(ModelViewSet):
+class OrderViewSet(ModelViewSet):
     """
     OrderViewset handles CRUD operations and custom actions for Order objects in the Pet Adoptions system.
     Standard Endpoints:
@@ -100,8 +109,11 @@ class OrderViewset(ModelViewSet):
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         order = self.get_object()
-        OrderService.cancel_order(order=order, user=request.user)
-        return Response({'status': 'Canceled'})
+        try:
+            OrderService.cancel_order(order=order, user=request.user)
+            return Response({'status': 'Canceled'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
     
     @action(detail=True, methods=['post'])
     def mark_as_delivered(self, request, pk=None):
@@ -127,12 +139,14 @@ class OrderViewset(ModelViewSet):
         order = self.get_object()
         serializer = orderSz.UpdateOrderSerializer(
             order, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'status': f'Order status updated to {request.data['status']}'})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': f"Order status updated to {serializer.validated_data.get('status', order.status)}"})
+        return Response(serializer.errors, status=400)
 
     def get_permissions(self):
-        if self.action in ['update_status', 'destroy']:
+        # Only admin can change order status in any way
+        if self.action in ['update_status', 'partial_update',  'mark_as_delivered']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
 
@@ -146,38 +160,35 @@ class OrderViewset(ModelViewSet):
         return orderSz.OrderSerializer
 
     def perform_create(self, serializer):
-        order = serializer.save(user=self.request.user)
-        # Mark pets as unavailable after order creation
-        for item in order.items.all():
-            pet = item.pet
-            pet.available = False
-            pet.save()
+        # Use the service to create the order, not just serializer.save()
+        user = self.request.user
+        cart_id = serializer.validated_data.get('cart_id')
+        order = OrderService.create_order(user=user, cart_id=cart_id)
+        return order
 
     def perform_update(self, serializer):
         order = serializer.save()
         # If status is set to 'canceled', mark pets as available again
         if hasattr(order, 'status') and order.status == 'canceled':
-            for item in order.items.all():
-                pet = item.pet
-                pet.available = True
-                pet.save()
+            from order.services import OrderService
+            OrderService.mark_pets_available(order)
 
     def perform_destroy(self, instance):
         # When an order is deleted (including cancel), mark pets as available again
-        for item in instance.items.all():
-            pet = item.pet
-            pet.available = True
-            pet.save()
+        from order.services import OrderService
+        OrderService.mark_pets_available(instance)
         instance.delete()
 
     def get_serializer_context(self):
+        context = super().get_serializer_context()
         if getattr(self, 'swagger_fake_view', False):
-            return super().get_serializer_context()
-        return {'user_id': self.request.user.id, 'user': self.request.user}
+            return context
+        context.update({'user_id': self.request.user.id, 'user': self.request.user, 'request': self.request})
+        return context
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Order.objects.none()
         if self.request.user.is_staff:
             return Order.objects.prefetch_related('items__pet').all()
-        return Order.objects.prefetch_related('items__pet').filter(user=self.request.user)
+        return Order.objects.prefetch_related('items__pet').filter(user=self.request.user)   

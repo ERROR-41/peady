@@ -1,94 +1,98 @@
-from order.models import Cart, CartItem, OrderItem, Order
 from django.db import transaction
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from users.models import AccountBalance
+from .models import Cart, Order, OrderItem
+from users.models import AccountBalance # Assuming this model exists
 
 class OrderService:
     @staticmethod
-    def create_order(user_id, cart_id):
-        with transaction.atomic():
-            cart = Cart.objects.get(pk=cart_id)
-            cart_items = cart.items.select_related('pet').all()
+    @transaction.atomic
+    def create_order(user, cart_id):
+        """
+        Creates an order from a user's cart.
+        The initial status is set to 'Ready To Ship'. The post_save signal will
+        automatically handle marking the pets as unavailable.
+        """
+        try:
+            cart = Cart.objects.select_related('user').get(pk=cart_id, user=user)
+        except Cart.DoesNotExist:
+            raise ValidationError("Invalid cart or permission denied.")
 
-            # Calculate total price without quantity (each pet has its own price)
-            total_price = sum([item.pet.price for item in cart_items])
+        cart_items = cart.items.select_related('pet').all()
+        if not cart_items.exists():
+            raise ValidationError("Cannot create an order from an empty cart.")
 
-            if not cart.user:
-                raise ValidationError({"detail": "Cart is not associated with a valid user"})
+        # Check if any pets in the cart are already unavailable
+        unavailable_pets = [item.pet.name for item in cart_items if not item.pet.availability_status]
+        if unavailable_pets:
+            raise ValidationError(f"The following pets are no longer available: {', '.join(unavailable_pets)}.")
 
-            try:
-                account_balance = AccountBalance.objects.get(user=cart.user)
-                user_balance = account_balance.balance
-                account_balance.balance -= total_price
-                account_balance.save()    
-                
-            except AccountBalance.DoesNotExist:
-                raise ValidationError({"detail": "User does not have an account balance"})
+        total_price = sum(item.pet.price for item in cart_items)
 
-            if user_balance < total_price:
-                raise ValidationError({"detail": "Insufficient balance to place the order"})
-            
-            order = Order.objects.create(
-                user_id=user_id, total_price=total_price, status=Order.READY_TO_SHIP)
+        # Handle payment/balance deduction
+        # (Assuming a simple AccountBalance model on the user)
+        try:
+            account = AccountBalance.objects.get(user=user)
+            if account.balance < total_price:
+                raise ValidationError("Insufficient balance.")
+            account.balance -= total_price
+            account.save()
+        except AccountBalance.DoesNotExist:
+            raise ValidationError("User account balance not found.")
 
-            # Create order items without quantity
-            order_items = [
-                OrderItem(
-                    order=order,
-                    pet=item.pet,
-                    price=item.pet.price,
-                    total_price=item.pet.price  # Each pet's total price is just its price
-                )
-                for item in cart_items
-            ]
-
-            OrderItem.objects.bulk_create(order_items)
-
-            # Mark all pets in the order as unavailable
-            for item in cart_items:
-                item.pet.availability_status = False  # Ensure 'availability_status' exists on Pet model
-                item.pet.save()
-
-            cart.delete()
-
-            return order
+        # Create the order. The signal will handle pet availability.
+        order = Order.objects.create(user=user, total_price=total_price, status=Order.READY_TO_SHIP)
+        # Create the corresponding order items
+        order_items_to_create = []
+        for item in cart_items:
+            order_item = OrderItem(order=order, pet=item.pet, price=item.pet.price, total_price=item.pet.price)
+            order_items_to_create.append(order_item)
+            # Mark pet as unavailable
+            item.pet.mark_unavailable()
+        OrderItem.objects.bulk_create(order_items_to_create)
+        # The cart has been processed and can be deleted
+        cart.delete()
+        return order
 
     @staticmethod
+    @transaction.atomic
     def cancel_order(order, user):
-        if user.is_staff:
-            if order.status != Order.CANCELED:
-                account_balance, _ = AccountBalance.objects.get_or_create(user=order.user)
-                account_balance.balance += order.total_price
-                account_balance.save()
-                
-                # Make pets available again when order is canceled
-                for item in order.items.all():
-                    item.pet.availability_status = True
-                    item.pet.save()
-                    
-            order.status = Order.CANCELED
-            order.save()
-            return order
-
-        if order.user != user:
-            raise PermissionDenied(
-                {"detail": "You can only cancel your own order"})
+        """
+        Cancels an order and refunds the user.
+        The post_save signal will automatically make the pets available again.
+        """
+        if not (user.is_staff or order.user == user):
+            raise PermissionDenied("You do not have permission to cancel this order.")
 
         if order.status in [Order.DELIVERED, Order.SHIPPED]:
-            raise ValidationError({"detail": "You cannot cancel an order that has been delivered or shipped"})
-
-        if order.status != Order.CANCELED:
-            account_balance, _ = AccountBalance.objects.get_or_create(user=order.user)
-            account_balance.balance += order.total_price
-            account_balance.save()
+            raise ValidationError("Cannot cancel an order that has already been shipped or delivered.")
+        
+        if order.status == Order.CANCELED:
+            raise ValidationError("This order has already been canceled.")
             
-            # Make pets available again when order is canceled
-            for item in order.items.all():
-                item.pet.availability_status = True
-                item.pet.save()
-
+        # Refund the total price to the user's account balance
+        account, _ = AccountBalance.objects.get_or_create(user=order.user)
+        account.balance += order.total_price
+        account.save()
+            
+        # Update the order status. The signal will handle the rest.
         order.status = Order.CANCELED
         order.save()
         return order
 
+    @staticmethod
+    def mark_pets_unavailable(order):
+        """
+        Marks all pets in the order as unavailable.
+        """
+        for item in order.items.select_related('pet').all():
+            item.pet.availability_status = False
+            item.pet.save(update_fields=['availability_status'])
 
+    @staticmethod
+    def mark_pets_available(order):
+        """
+        Marks all pets in the order as available.
+        """
+        for item in order.items.select_related('pet').all():
+            item.pet.availability_status = True
+            item.pet.save(update_fields=['availability_status'])
