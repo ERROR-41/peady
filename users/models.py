@@ -26,6 +26,10 @@ class User(AbstractUser):
 
 
 class AccountBalance(models.Model):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._prev_add_money = self.add_money
     add_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)

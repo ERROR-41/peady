@@ -78,8 +78,13 @@ class OrderService:
             raise ValidationError("Order cannot be canceled. Only orders with status 'Pending' or 'Ready To Ship' can be canceled. Orders that are 'Shipped' or 'Delivered' cannot be canceled.")
         
 
+
         if order.status == Order.CANCELED :
             raise ValidationError("This order has already been canceled.")
+
+        # Set status to canceled and save
+        order.status = Order.CANCELED
+        order.save()
 
         # Refund immediately to both balance and add_money
         account, _ = AccountBalance.objects.get_or_create(user=order.user)

@@ -27,6 +27,10 @@ class CartItem(models.Model):
 
 
 class Order(models.Model):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._prev_status = self.status
     def is_empty(self):
         return not self.items.exists()
     PENDING = "Pending"

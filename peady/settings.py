@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "pet",
     "order",
     "users",
+    "payment",
     "debug_toolbar",
 ]
 

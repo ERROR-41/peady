@@ -34,4 +34,5 @@ urlpatterns = [
     path("", include(cart_router.urls)),
     path("", include(pet_router.urls)),
     path("", include(order_router.urls)),
+    path("", include("payment.urls")),
 ]
