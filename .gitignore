@@ -7,14 +7,11 @@ db.sqlite3
 .env*
 
 .venv
-__pycache__/
 *.pyc
 media/
 *.log
 node_modules/
-**/__pycache__/
-.vscode/
-***/__pycache__/
+
 
 # Media and static files
 /media/
