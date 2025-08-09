@@ -6,6 +6,12 @@ db.sqlite3
 .venv*
 .env*
 
+.venv
+__pycache__/
+*.pyc
+media/
+*.log
+node_modules/
 
 
 # Media and static files
