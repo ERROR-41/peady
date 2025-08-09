@@ -36,7 +36,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         pet_id = self.validated_data['pet_id']
 
         try:
-            cart_item = CartItem.objects.get(cart_id=cart_id, pet_id=pet_id)# If pet already exists, raise validation error since each pet should be unique
+            CartItem.objects.get(cart_id=cart_id, pet_id=pet_id)
             raise serializers.ValidationError("This pet is already in your cart")
         except CartItem.DoesNotExist:
             # Create new cart item since pet doesn't exist in cart
@@ -69,7 +69,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = [ 'pet']
+        fields = [ 'id' ,'pet']
 
     def get_total_price(self, cart_item: CartItem):
         return cart_item.pet.price
@@ -140,7 +140,10 @@ class CreateOrderSerializer(serializers.Serializer):
         cart_id = validated_data['cart_id']
         try:
             order = OrderService.create_order(user=user, cart_id=cart_id)
-            return order
+            return {
+                "order": order,
+                "message": "Order created successfully"
+            }
         except ValueError as e:
             raise serializers.ValidationError(str(e))
 

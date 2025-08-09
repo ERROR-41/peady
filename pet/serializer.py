@@ -25,11 +25,12 @@ class PetSeralizer(ModelSerializer):
             "id",
             "name",
             "category",
-            "category_name",
             "age",
-            "description",
+            "category_name",
+            "breed",
             "price",
-            "availability_status",
+             "availability_status",
+            "description",
             "pet_images",
         ]
         read_only_fields = ["availability_status"]

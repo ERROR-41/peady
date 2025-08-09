@@ -9,11 +9,13 @@ from django.dispatch import receiver
 
 
 class User(AbstractUser):
+
     username = None
     email = models.EmailField(unique=True)
     address = models.TextField(max_length=40, blank=True, null=True)
     phone_number = models.TextField(max_length=15, blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
+    pin = models.CharField(max_length=10, default="1234")  # Default PIN is '1234'
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -24,6 +26,8 @@ class User(AbstractUser):
 
 
 class AccountBalance(models.Model):
+    add_money = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)

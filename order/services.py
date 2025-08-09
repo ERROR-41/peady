@@ -5,6 +5,10 @@ from users.models import AccountBalance # Assuming this model exists
 
 class OrderService:
     @staticmethod
+    def remove_order_if_empty(order):
+        if order.is_empty():
+            order.delete()
+    @staticmethod
     @transaction.atomic
     def create_order(user, cart_id):
         """
@@ -19,7 +23,8 @@ class OrderService:
 
         cart_items = cart.items.select_related('pet').all()
         if not cart_items.exists():
-            raise ValidationError("Cannot create an order from an empty cart.")
+            cart.delete()
+            raise ValidationError("Cannot create an order from an empty cart. Cart has been removed.")
 
         # Check if any pets in the cart are already unavailable
         unavailable_pets = [item.pet.name for item in cart_items if not item.pet.availability_status]
@@ -51,32 +56,37 @@ class OrderService:
         OrderItem.objects.bulk_create(order_items_to_create)
         # The cart has been processed and can be deleted
         cart.delete()
-        return order
+
+    @staticmethod
+    def remove_cart_if_empty(cart):
+        if cart.is_empty():
+            cart.delete()
 
     @staticmethod
     @transaction.atomic
     def cancel_order(order, user):
         """
-        Cancels an order and refunds the user.
+        Cancels an order and schedules a refund after 30 minutes if eligible.
         The post_save signal will automatically make the pets available again.
         """
         if not (user.is_staff or order.user == user):
             raise PermissionDenied("You do not have permission to cancel this order.")
 
-        if order.status in [Order.DELIVERED, Order.SHIPPED]:
-            raise ValidationError("Cannot cancel an order that has already been shipped or delivered.")
+
+        # Only allow cancel if order is PENDING or READY_TO_SHIP
+        if order.status not in [Order.PENDING, Order.READY_TO_SHIP]:
+            raise ValidationError("Order cannot be canceled. Only orders with status 'Pending' or 'Ready To Ship' can be canceled. Orders that are 'Shipped' or 'Delivered' cannot be canceled.")
         
-        if order.status == Order.CANCELED:
+
+        if order.status == Order.CANCELED :
             raise ValidationError("This order has already been canceled.")
-            
-        # Refund the total price to the user's account balance
+
+        # Refund immediately to both balance and add_money
         account, _ = AccountBalance.objects.get_or_create(user=order.user)
         account.balance += order.total_price
+        account.add_money += order.total_price
         account.save()
-            
-        # Update the order status. The signal will handle the rest.
-        order.status = Order.CANCELED
-        order.save()
+
         return order
 
     @staticmethod

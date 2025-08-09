@@ -2,15 +2,17 @@ from django.shortcuts import render
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from order import serializers as orderSz
-from order.serializers import CartSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer
+from order.serializers import CartSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer, OrderItemSerializer
 from order.models import Cart, CartItem, Order, OrderItem
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from order.services import OrderService
 from rest_framework.response import Response
+from rest_framework import viewsets, permissions
 
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
+   
     """
     CartViewSet handles CRUD operations for the Cart model for authenticated users.
     API Endpoints:
@@ -37,6 +39,16 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+       
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({
+            'message': 'Cart is successfully created.',
+            'cart': serializer.data
+        }, status=201, headers=headers)
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
@@ -45,6 +57,17 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
 
 class CartItemViewSet(ModelViewSet):
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({
+            'message': 'Cart item created successfully.',
+            'item': serializer.data
+        }, status=201, headers=headers)
+        
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
@@ -87,6 +110,16 @@ class CartItemViewSet(ModelViewSet):
 
     def get_queryset(self):
         return CartItem.objects.select_related('pet').filter(cart_id=self.kwargs.get('cart_pk'))
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        cart = instance.cart
+        self.perform_destroy(instance)
+        # If the cart has no more items, delete the cart
+        if cart.items.count() == 0:
+            cart.delete()
+            return Response({'message': 'Cart item removed successfully. Cart deleted because it is now empty.'})
+        return Response({'message': 'Cart item removed successfully.'})
 
 
 class OrderViewSet(ModelViewSet):
@@ -173,9 +206,7 @@ class OrderViewSet(ModelViewSet):
             from order.services import OrderService
             OrderService.mark_pets_available(order)
 
-    def perform_destroy(self, instance):
-        # When an order is deleted (including cancel), mark pets as available again
-        from order.services import OrderService
+    def perform_destroy(self, instance): 
         OrderService.mark_pets_available(instance)
         instance.delete()
 
@@ -191,4 +222,24 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.none()
         if self.request.user.is_staff:
             return Order.objects.prefetch_related('items__pet').all()
-        return Order.objects.prefetch_related('items__pet').filter(user=self.request.user)   
+        return Order.objects.prefetch_related('items__pet').filter(user=self.request.user)
+
+class OrderItemViewSet(viewsets.ModelViewSet):
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get',  'delete']
+
+    def get_queryset(self):
+        order_id = self.kwargs.get('order_id')
+        base_qs = OrderItem.objects.filter(order__user=self.request.user)
+        if order_id:
+            return base_qs.filter(order_id=order_id)
+        return base_qs
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)

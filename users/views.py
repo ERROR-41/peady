@@ -1,10 +1,13 @@
-
-from requests import Response
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from users.models import User
 from users.serializers import AddBalanceSerializer, UserProfileSerializer
 from rest_framework import permissions
+from decimal import Decimal
+from rest_framework import status
+from rest_framework.reverse import reverse
+from rest_framework.decorators import action
 
 
 class UserProfileViewSet(ModelViewSet):
@@ -29,8 +32,13 @@ class UserProfileViewSet(ModelViewSet):
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
 
+def action(self, request, *args, **kwargs):
+    raise NotImplementedError
+
 
 class AccountBalanceViewSet(ModelViewSet):
+
+   
     """
     API endpoint that allows users to add money to their account balance.                   
     - partial_update: Partially update the user's account balance. (Authenticated users only)       
@@ -44,12 +52,33 @@ class AccountBalanceViewSet(ModelViewSet):
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
 
-    def retrieve(self, request, *args, **kwargs):
-        user = self.request.user
-        data = {
-            "full_name": user.get_full_name(),
-            "current_balance": user.balance
-        }
-        return Response(data)
-
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
     
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        account_balance = serializer.save()
+        user = request.user
+        return Response({
+            'owner_name': user.get_full_name() or user.email,
+            'message': 'Money deposited successfully.',
+            'added_amount': str(request.data.get('amount')),
+            'new_balance': str(account_balance.balance),
+            'total_added_money': str(account_balance.add_money),
+            'account_id': str(account_balance.id),
+        })
+    
+    
+        
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        account = user.accountbalance
+        return Response({
+            'Id': str(account.id),
+            'User FullName': user.get_full_name() or user.email,
+            'current_balance': str(account.balance),
+            'total_added_money': str(account.add_money),
+        })
+
+

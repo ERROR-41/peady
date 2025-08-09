@@ -5,6 +5,8 @@ from pet.models import Pet
 
 
 class Cart(models.Model):
+    def is_empty(self):
+        return not self.items.exists()
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.OneToOneField( settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cart")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -25,6 +27,8 @@ class CartItem(models.Model):
 
 
 class Order(models.Model):
+    def is_empty(self):
+        return not self.items.exists()
     PENDING = "Pending"
     READY_TO_SHIP = "Ready To Ship"
     SHIPPED = "Shipped"
