@@ -1,4 +1,5 @@
 from django.urls import path, include
+from payment.views import TransactionHistoryViewSet
 from order.views import CartItemViewSet, CartViewSet, OrderViewSet, OrderItemViewSet
 from pet.views import (
     PetAdoptionViewSet,
@@ -15,6 +16,7 @@ router.register("pets", PetAdoptionViewSet, basename="pets")
 router.register("categories", PetCategoryViewSet, basename="category")
 router.register("carts", CartViewSet, basename="carts")
 router.register("orders", OrderViewSet, basename="orders")
+router.register("payment_history", TransactionHistoryViewSet, basename="payment_history")
 # Register the profile viewset (replace `ProfileViewSet` with the actual viewset for profiles)
 router.register("profile", UserProfileViewSet, basename="profile")
 router.register("account_balance", AccountBalanceViewSet, basename="account_balance")
@@ -34,5 +36,4 @@ urlpatterns = [
     path("", include(cart_router.urls)),
     path("", include(pet_router.urls)),
     path("", include(order_router.urls)),
-    path("", include("payment.urls")),
 ]

@@ -8,6 +8,9 @@ from decimal import Decimal
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.decorators import action
+from payment.models import TransactionHistory
+from payment.serializers import TransactionHistorySerializer
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 
 class UserProfileViewSet(ModelViewSet):
@@ -32,8 +35,7 @@ class UserProfileViewSet(ModelViewSet):
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
 
-def action(self, request, *args, **kwargs):
-    raise NotImplementedError
+   
 
 
 class AccountBalanceViewSet(ModelViewSet):
@@ -80,5 +82,9 @@ class AccountBalanceViewSet(ModelViewSet):
             'current_balance': str(account.balance),
             'total_added_money': str(account.add_money),
         })
+ 
+ 
+        
+
 
 
