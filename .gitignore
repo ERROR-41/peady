@@ -1,27 +1,55 @@
-# Django related files and folders
-
-# Django migrations
-*/migrations/*.pyc
-db.sqlite3
-.venv*
-.env*
-
-.venv
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 *.pyc
-media/
+
+# Django
 *.log
-node_modules/
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+*.sqlite
+*.env
+.env.*
 
-
-# Media and static files
-/media/
-
-# VSCode settings
+# VSCode
 .vscode/
 
-# pipenv/virtualenv
+# OS
+.DS_Store
+Thumbs.db
+
+# Virtualenv
 venv/
-env/
-.venv/
+ENV/
+.env/
+
+# Static/media
+staticfiles/
+media/
+
+# Migrations
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+
+# Vercel
+.vercel/
+
+# Coverage
+htmlcov/
+.coverage
+
+# Others
+*.bak
+*.swp
+*.swo
+
+# Ignore local settings
+local_settings.py
 
 
