@@ -4,7 +4,7 @@
       "src": "peady/wsgi.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "100mb",
+        "maxLambdaSize": "300mb",
         "runtime": "python3.11"
       }
     }
