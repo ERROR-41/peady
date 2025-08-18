@@ -4,6 +4,7 @@ from order.views import CartItemViewSet, CartViewSet, OrderViewSet, OrderItemVie
 from pet.views import (
     PetAdoptionViewSet,
     PetCategoryViewSet,
+    AllpetViewset,
     ReviewViewSet,
     PetImageViewSet,
 )
@@ -13,6 +14,7 @@ from users.views import UserProfileViewSet, AccountBalanceViewSet
 
 router = routers.DefaultRouter()
 router.register("pets", PetAdoptionViewSet, basename="pets")
+router.register("all_pets", AllpetViewset, basename="allpets")
 router.register("categories", PetCategoryViewSet, basename="category")
 router.register("carts", CartViewSet, basename="carts")
 router.register("orders", OrderViewSet, basename="orders")

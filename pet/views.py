@@ -7,11 +7,20 @@ from pet.serializer import (
 )
 from pet.models import Pet, PetImage, Review, Category
 from rest_framework import permissions
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, NumberFilter
+from rest_framework.filters import SearchFilter,OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from pet.paginations import DefaultPagination
 
+
+
+class PetPriceRangeFilterSet(FilterSet):
+    min_price = NumberFilter(field_name="price", lookup_expr="gte")
+    max_price = NumberFilter(field_name="price", lookup_expr="lte")
+
+    class Meta:
+        model = Pet
+        fields = ["category", "min_price", "max_price"]
 
 
 class PetAdoptionViewSet(ModelViewSet):
@@ -27,15 +36,15 @@ class PetAdoptionViewSet(ModelViewSet):
 
     serializer_class = PetSeralizer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ["category"] 
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = PetPriceRangeFilterSet
     search_fields = ["^name"]
-    
+    ordering_fields = ["price"]
     pagination_class = DefaultPagination    
-    
+    # Price range filtering is now handled by filterset_class
     def get_queryset(self):
-        queryset = Pet.objects.select_related('category').prefetch_related('images').all()
-        return queryset
+        return Pet.objects.select_related('category').prefetch_related('images').all()
+    
     
     
     def get_permissions(self):
@@ -45,7 +54,25 @@ class PetAdoptionViewSet(ModelViewSet):
             self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
         return super().get_permissions()
 
-
+class AllpetViewset(ModelViewSet):
+    serializer_class = PetSeralizer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = PetPriceRangeFilterSet
+    search_fields = ["^name"]
+    ordering_fields = ["price"]  
+    # Price range filtering is now handled by filterset_class
+    def get_queryset(self):
+        return Pet.objects.select_related('category').prefetch_related('images').all()
+    
+    
+    
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            self.permission_classes = [permissions.IsAdminUser]
+        else:
+            self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+        return super().get_permissions()
 
 class PetImageViewSet(ModelViewSet):
     """
