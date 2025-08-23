@@ -34,8 +34,11 @@ order_router = routers.NestedDefaultRouter(router, "orders", lookup="order")
 order_router.register("items", OrderItemViewSet, basename="order-item")
 
 urlpatterns = [
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.jwt")),
     path("", include(router.urls)),
     path("", include(cart_router.urls)),
     path("", include(pet_router.urls)),
     path("", include(order_router.urls)),
+
 ]

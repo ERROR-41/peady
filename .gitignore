@@ -30,7 +30,7 @@ ENV/
 .env/
 
 # Static/media
-staticfiles/
+# staticfiles/
 media/
 
 # Migrations
