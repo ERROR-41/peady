@@ -16,6 +16,7 @@ __pycache__/*
 *.sqlite
 *.env
 .env.*
+!.env.example
 
 # VSCode
 .vscode/
