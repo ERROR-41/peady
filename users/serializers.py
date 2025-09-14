@@ -26,27 +26,20 @@ class UserBalanceSerializer(ModelSerializer):
 class AddBalanceSerializer(ModelSerializer):
 
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=True)
-    pin = serializers.CharField(write_only=True, required=True)
-
     class Meta:
         model = AccountBalance
-        fields = ["id", "amount", "balance", "add_money", "pin"]
+        fields = ["id", "amount", "balance", "add_money"]
         read_only_fields = ["id", "balance", "add_money"]
 
     def create(self, validated_data):
         amount = validated_data.pop("amount", None)
-        pin = validated_data.pop("pin", None)
         if amount is None:
             raise serializers.ValidationError({"amount": "This field is required."})
-        if pin is None:
-            raise serializers.ValidationError({"pin": "PIN is required for add balance."})
         if amount < Decimal("100.00"):
             raise serializers.ValidationError({"amount": "Amount must be at least 100."})
         if amount < 0:
             raise serializers.ValidationError({"amount": "Negative amounts are not allowed."})
         user = self.context["request"].user
-        if not hasattr(user, 'pin') or str(user.pin) != str(pin):
-            raise serializers.ValidationError({"pin": "Invalid PIN."})
         account_balance, _ = AccountBalance.objects.get_or_create(user=user)
         account_balance.balance += amount
         account_balance.add_money += amount

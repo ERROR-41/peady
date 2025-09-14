@@ -13,9 +13,13 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     address = models.TextField(max_length=40, blank=True, null=True)
-    phone_number = models.TextField(max_length=11, help_text="Enter with 01234567890 ")
+    # Make phone number optional at the model level; validate format in the serializer
+    phone_number = models.TextField(
+        max_length=11,
+        blank=True,
+        help_text="Enter with 01234567890 "
+    )
     created_at = models.DateField(auto_now_add=True)
-    pin = models.CharField(max_length=10, default="1234")  # Default PIN is '1234'
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [ "first_name"]
 
