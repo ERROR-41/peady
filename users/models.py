@@ -17,7 +17,7 @@ class User(AbstractUser):
     created_at = models.DateField(auto_now_add=True)
     pin = models.CharField(max_length=10, default="1234")  # Default PIN is '1234'
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = [ "first_name", "last_name","phone_number"]
+    REQUIRED_FIELDS = [ "first_name"]
 
     objects = CustomUserManager()
 
