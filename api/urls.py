@@ -9,7 +9,7 @@ from pet.views import (
     PetImageViewSet,
 )
 from rest_framework_nested import routers
-from users.views import UserProfileViewSet, AccountBalanceViewSet, DeleteAccountView
+from users.views import UserProfileViewSet, AccountBalanceViewSet
 
 
 router = routers.DefaultRouter()
@@ -36,7 +36,6 @@ order_router.register("items", OrderItemViewSet, basename="order-item")
 urlpatterns = [
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
-    path("auth/users/me/delete/", DeleteAccountView.as_view(), name="delete-account"),
     path("", include(router.urls)),
     path("", include(cart_router.urls)),
     path("", include(pet_router.urls)),
