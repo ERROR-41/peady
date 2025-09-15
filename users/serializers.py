@@ -75,7 +75,8 @@ class UserProfileSerializer(ModelSerializer):
             "last_name",
             "phone_number",
             "address",
-            "balance" ,  
+            "balance",
+            "is_staff",
           
         ]
         read_only_fields = ["email", "last_login", "balance"]
